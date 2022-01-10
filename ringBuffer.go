@@ -4,27 +4,19 @@ import (
 	"errors"
 )
 
-/*
-环形双向链表buffer的想法：
-每个节点是一个cell，cell的数据部分是一个小数组
-
-当一个cell写满之后，只有完全读完了，才可以进行写
-
-*/
-
 var ErrRingIsEmpty = errors.New("ringbuffer is empty")
 
-//var ErrCellIsEmpty = errors.New("cell is empty")
-
-// CellInitialSize cellBuffer的初始容量
+// CellInitialSize cell的初始容量
 var CellInitialSize = 1024
+
+// CellInitialCount 初始化cell数量
 var CellInitialCount = 2
 
-type cellBuffer struct {
-	Data     []T         // 数据部分
-	fullFlag bool        // cell满的标志
-	next     *cellBuffer // 指向后一个cellBuffer
-	pre      *cellBuffer // 指向前一个cellBuffer
+type cell struct {
+	Data     []T   // 数据部分
+	fullFlag bool  // cell满的标志
+	next     *cell // 指向后一个cellBuffer
+	pre      *cell // 指向前一个cellBuffer
 
 	r int // 下一个要读的指针
 	w int // 下一个要下的指针
@@ -33,16 +25,16 @@ type cellBuffer struct {
 type RingBuffer struct {
 	cellCount int // cell 数量统计
 
-	readCell  *cellBuffer // 下一个要读的cell
-	writeCell *cellBuffer // 下一个要写的cell
+	readCell  *cell // 下一个要读的cell
+	writeCell *cell // 下一个要写的cell
 }
 
 // NewRingBuffer 新建一个ringbuffe，包含两个cell
 func NewRingBuffer() *RingBuffer {
-	rootCell := &cellBuffer{
+	rootCell := &cell{
 		Data: make([]T, CellInitialSize),
 	}
-	lastCell := &cellBuffer{
+	lastCell := &cell{
 		Data: make([]T, CellInitialSize),
 	}
 	rootCell.pre = lastCell
@@ -125,7 +117,7 @@ func (r *RingBuffer) Write(value T) {
 // grow 扩容
 func (r *RingBuffer) grow() {
 	// 新建一个cell
-	newCell := &cellBuffer{
+	newCell := &cell{
 		Data: make([]T, CellInitialSize),
 	}
 
