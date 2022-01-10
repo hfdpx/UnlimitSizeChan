@@ -4,25 +4,30 @@ import "sync/atomic"
 
 type T interface{}
 
+// UnlimitSizeChan 无限缓存的Channle
 type UnlimitSizeChan struct {
-	bufCount int64 // 统计元素数量，原子操作
-	In       chan<- T
-	Out      <-chan T
-	buffer   *RingBuffer
+	bufCount int64       // 统计元素数量，原子操作
+	In       chan<- T    // 写入channle
+	Out      <-chan T    // 读取channle
+	buffer   *RingBuffer // 自适应扩缩容Buf
 }
 
+// Len uc中总共的元素数量
 func (uc UnlimitSizeChan) Len() int {
 	return len(uc.In) + uc.BufLen() + len(uc.Out)
 }
 
+// BufLen uc的buf中的元素数量
 func (uc UnlimitSizeChan) BufLen() int {
 	return int(atomic.LoadInt64(&uc.bufCount))
 }
 
+// NewUnlimitSizeChan 新建一个无限缓存的Channle，并指定In和Out大小(In和Out设置得一样大)
 func NewUnlimitSizeChan(initCapacity int) *UnlimitSizeChan {
 	return NewUnlitSizeChanSize(initCapacity, initCapacity)
 }
 
+// NewUnlitSizeChanSize 新建一个无限缓存的Channle，并指定In和Out大小(In和Out设置得不一样大)
 func NewUnlitSizeChanSize(initInCapacity, initOutCapacity int) *UnlimitSizeChan {
 	in := make(chan T, initInCapacity)
 	out := make(chan T, initOutCapacity)
@@ -33,6 +38,7 @@ func NewUnlitSizeChanSize(initInCapacity, initOutCapacity int) *UnlimitSizeChan 
 	return &ch
 }
 
+// 内部Worker Groutine实现
 func process(in, out chan T, ch *UnlimitSizeChan) {
 	defer close(out) // in 关闭，数据读取后也把out关闭
 
