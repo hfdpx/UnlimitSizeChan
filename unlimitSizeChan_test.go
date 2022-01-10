@@ -1,41 +1,11 @@
 package unlimitSizeChan
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"sync"
 	"testing"
 	"time"
 )
-
-func TestNewUnlimitSizeChanForBug(t *testing.T) {
-	ch := NewUnlimitSizeChan(10)
-
-	var writeSlice, readSlice []int
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-
-		for i := 0; i < 1024*400; i++ {
-			ch.In <- i
-			writeSlice = append(writeSlice, i)
-		}
-		close(ch.In)
-	}()
-
-	wg.Wait()
-	for v := range ch.Out {
-		readSlice = append(readSlice, v.(int))
-	}
-
-	for i := 0; i < len(writeSlice); i++ {
-		if writeSlice[i] != readSlice[i] {
-			fmt.Println("no same")
-		}
-	}
-}
 
 func TestMakeUnlimitSizeChan(t *testing.T) {
 	ch := NewUnlimitSizeChan(10)
