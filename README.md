@@ -2,7 +2,15 @@
 
 [![License](https://img.shields.io/:license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-无限缓冲的channel，golang实现
+无限缓存的channel，golang实现
+* 无限缓存，无需在创建channle时指定大小
+* 底层buf采用双向环形链表结构，可基于数据量进行自适应扩缩容
+* 永远不阻塞写
+* 仅在无数据时阻塞读
+* 读写仍通过channle操作
+* channle被关闭后，未读取的数据仍然可读
+
+
 
 请参阅以下文章和问题：
 1. https://github.com/golang/go/issues/20352
